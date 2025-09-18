@@ -1,33 +1,37 @@
-# Sports Schedulers - Web Application Dependencies
-# Author: Jose Ortiz
-# Copyright: Jose Ortiz 2025
-# Updated: September 8, 2025
+# Core Flask Framework
+Flask==2.3.3
+Werkzeug==2.3.7
 
-# Core Flask framework
-Flask==3.0.0
-Flask-SQLAlchemy==3.1.1
+# Database & ORM
+Flask-SQLAlchemy==3.0.5
 Flask-Migrate==4.0.5
+psycopg2-binary==2.9.7
+SQLAlchemy==2.0.21
 
-# Authentication and security
-Flask-JWT-Extended==4.6.0
+# Authentication & Security
+Flask-JWT-Extended==4.5.3
+bcrypt==4.0.1
+Flask-WTF==1.1.1
+
+# Real-time Features
+Flask-SocketIO==5.3.6
+eventlet==0.33.3
+
+# HTTP & CORS
 Flask-CORS==4.0.0
-Werkzeug==3.0.1
 
-# Database
-SQLAlchemy==2.0.23
-
-# Utilities
-python-dateutil==2.8.2
+# Configuration & Environment
 python-dotenv==1.0.0
 
-# Development tools
-Flask-Shell-IPython==1.4.0
+# Caching & Sessions (Redis)
+redis==5.0.0
 
-# Optional: For production deployment
-# gunicorn==21.2.0
-# psycopg2-binary==2.9.7
+# File Processing & Exports
+openpyxl==3.1.2
+pandas==2.1.1
 
-# Optional: For advanced features
-# Flask-Mail==0.9.1
-# celery==5.3.4
-# redis==5.0.1
+# Production Server
+gunicorn==21.2.0
+
+# Utilities & Validation
+python-dateutil==2.8.2
