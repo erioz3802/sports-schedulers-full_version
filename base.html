@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>{% block title %}Sports Scheduler{% endblock %}</title>
+    
+    <!-- Tailwind CSS for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <style>
+        /* Custom color scheme matching desktop app */
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --accent-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+        }
+
+        .nav-link {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-left: 4px solid white;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+
+        .loading {
+            display: none;
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+        }
+    </style>
+    
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-gray-50">
+    <!-- Mobile menu button -->
+    <div class="md:hidden fixed top-4 left-4 z-50">
+        <button id="mobile-menu-btn" class="bg-blue-600 text-white p-2 rounded-md">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Main container -->
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div id="sidebar" class="sidebar fixed md:relative w-64 h-full text-white z-40 md:z-auto">
+            <!-- Logo/Header -->
+            <div class="p-6 border-b border-white border-opacity-20">
+                <h1 class="text-xl font-bold">
+                    <i class="fas fa-calendar-check mr-2"></i>
+                    Sports Schedulers
+                </h1>
+                <p class="text-sm text-white text-opacity-80 mt-1">Multi-User Web App</p>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="mt-6">
+                <div class="px-4">
+                    <p class="text-xs font-semibold text-white text-opacity-60 uppercase tracking-wider mb-3">
+                        Main Navigation
+                    </p>
+                </div>
+                
+                <a href="#" class="nav-link active flex items-center px-6 py-3 text-white" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt mr-3 w-5"></i>
+                    Dashboard
+                </a>
+                
+                <a href="#" class="nav-link flex items-center px-6 py-3 text-white" data-page="games">
+                    <i class="fas fa-football-ball mr-3 w-5"></i>
+                    Games
+                </a>
+                
+                <a href="#" class="nav-link flex items-center px-6 py-3 text-white" data-page="officials">
+                    <i class="fas fa-users mr-3 w-5"></i>
+                    Officials
+                </a>
+                
+                <a href="#" class="nav-link flex items-center px-6 py-3 text-white" data-page="assignments">
+                    <i class="fas fa-clipboard-list mr-3 w-5"></i>
+                    Assignments
+                </a>
+
+                <!-- Admin sections -->
+                <div id="admin-section" class="mt-6">
+                    <div class="px-4">
+                        <p class="text-xs font-semibold text-white text-opacity-60 uppercase tracking-wider mb-3">
+                            Management
+                        </p>
+                    </div>
+                    
+                    <a href="#" class="nav-link flex items-center px-6 py-3 text-white" data-page="leagues">
+                        <i class="fas fa-trophy mr-3 w-5"></i>
+                        Leagues
+                    </a>
+                    
+                    <a href="#" class="nav-link flex items-center px-6 py-3 text-white" data-page="locations">
+                        <i class="fas fa-map-marker-alt mr-3 w-5"></i>
+                        Locations
+                    </a>
+                    
+                    <a href="#" class="nav-link flex items-center px-6 py-3 text-white" data-page="reports">
+                        <i class="fas fa-chart-bar mr-3 w-5"></i>
+                        Reports
+                    </a>
+                </div>
+
+                <!-- User section -->
+                <div class="mt-6">
+                    <div class="px-4">
+                        <p class="text-xs font-semibold text-white text-opacity-60 uppercase tracking-wider mb-3">
+                            Account
+                        </p>
+                    </div>
+                    
+                    <a href="#" class="nav-link flex items-center px-6 py-3 text-white" data-page="profile">
+                        <i class="fas fa-user-circle mr-3 w-5"></i>
+                        Profile
+                    </a>
+                    
+                    <a href="#" id="logout-btn" class="nav-link flex items-center px-6 py-3 text-white hover:bg-red-600">
+                        <i class="fas fa-sign-out-alt mr-3 w-5"></i>
+                        Logout
+                    </a>
+                </div>
+            </nav>
+
+            <!-- User info at bottom -->
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white border-opacity-20">
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-sm"></i>
+                    </div>
+                    <div>
+                        <p id="current-username" class="text-sm font-medium">Loading...</p>
+                        <p id="current-role" class="text-xs text-white text-opacity-70">Role</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main content area -->
+        <div class="flex-1 flex flex-col min-w-0">
+            <!-- Top bar -->
+            <div class="bg-white border-b border-gray-200 px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 id="page-title" class="text-2xl font-bold text-gray-900">Dashboard</h2>
+                        <p id="page-subtitle" class="text-sm text-gray-600 mt-1">Welcome to your dashboard</p>
+                    </div>
+                    
+                    <!-- Real-time status indicator -->
+                    <div class="flex items-center space-x-4">
+                        <div id="connection-status" class="flex items-center text-sm">
+                            <div class="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+                            <span class="text-gray-600">Connected</span>
+                        </div>
+                        
+                        <!-- Notifications -->
+                        <div class="relative">
+                            <button id="notifications-btn" class="relative p-2 text-gray-400 hover:text-gray-600">
+                                <i class="fas fa-bell text-lg"></i>
+                                <span id="notification-count" class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page content -->
+            <div class="flex-1 overflow-auto">
+                <div class="p-6">
+                    {% block content %}
+                    <!-- Dynamic content will be loaded here -->
+                    <div id="main-content">
+                        <div class="flex justify-center items-center h-64">
+                            <div class="loading show items-center">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
+                                <span class="text-gray-600">Loading application...</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay for mobile -->
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden hidden"></div>
+
+    <!-- Toast notifications container -->
+    <div id="toast-container" class="fixed top-4 right-4 space-y-2 z-50"></div>
+
+    <!-- Axios for HTTP requests -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    
+    <!-- Socket.IO for real-time updates -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+
+    <!-- Main JavaScript -->
+        <script>
+        // Global app configuration  
+        window.APP_CONFIG = {
+            API_BASE_URL: '/api',
+            SOCKET_URL: window.location.origin,
+            current_user: null,
+            socket: null
+        };
+
+        // Initialize app with session-based authentication
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            console.log('Sports Schedulers - Initializing...');
+            
+            // For session-based auth, we don't need to check tokens
+            // The server will redirect to login if not authenticated
+            
+            // Load current user from session
+            loadCurrentUser()
+                .then(() => {
+                    console.log('Sports Schedulers - Ready!');
+                    // Initialize other components if needed
+                })
+                .catch(error => {
+                    console.error('App initialization failed:', error);
+                    // Don't redirect here - let server handle it
+                });
+        }
+
+        async function loadCurrentUser() {
+            try {
+                // Use the session endpoint instead of auth/me
+                const response = await fetch('/api/session');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        APP_CONFIG.current_user = data.session;
+                        console.log('Current user loaded:', data.session);
+                        
+                        // Check if user is official and redirect if needed
+                        if (data.session.role === 'official' && window.location.pathname === '/') {
+                            window.location.href = '/official';
+                            return;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load user session:', error);
+            }
+        }
+    </script>
+
+    {% block scripts %}{% endblock %}
+
+    <!-- Susan Virtual Assistant Integration -->
+    <script src="/static/js/susan-assistant.js"></script>
+
+    <!-- Enhanced Susan Configuration -->
+    <script>
+        // Enhanced Susan configuration
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set user context for Susan
+            if (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.current_user) {
+                if (window.susanAssistant) {
+                    window.susanAssistant.setUserPreference('userId', APP_CONFIG.current_user.user_id);
+                    window.susanAssistant.setUserPreference('userRole', APP_CONFIG.current_user.role);
+                    window.susanAssistant.setUserPreference('userName', APP_CONFIG.current_user.username);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

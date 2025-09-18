@@ -1,0 +1,833 @@
+{% extends "base.html" %}
+
+{% block title %}Leagues Management
+        
+        <!-- Fee Management Section (Admin Only) -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="card mt-4" id="fee-management-section">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-dollar-sign"></i> Fee Management
+                    <small class="text-muted ms-2">Configure official fees per league and level</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="fee-league-select" class="form-label">Select League for Fee Management:</label>
+                        <select class="form-select" id="fee-league-select">
+                            <option value="">Choose a league...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="button" class="btn btn-success" id="add-fee-btn" disabled>
+                            <i class="fas fa-plus"></i> Add Fee Structure
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Fee Structures Table -->
+                <div id="fee-structures-container" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Current Fee Structures</h6>
+                        <div class="text-muted small">
+                            <strong>Note:</strong> Fees = what officials get paid for their work
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm" id="fee-structures-table">
+                            <thead class="table-success">
+                                <tr>
+                                    <th>Level</th>
+                                    <th>Official Fee</th>
+                                    <th>Created Date</th>
+                                    <th>Created By</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Fee structures will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- No fee structures message -->
+                    <div id="no-fees-message" class="text-center text-muted py-4" style="display: none;">
+                        <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                        <p>No fee structures configured for this league.</p>
+                        <p class="small">Click "Add Fee Structure" to create the first one.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Add/Edit Fee Structure Modal -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="modal fade" id="feeStructureModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="feeStructureModalLabel">Add Fee Structure</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="feeStructureForm">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="fee-level-name" class="form-label">Level Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="fee-level-name" required maxlength="100">
+                                        <div class="form-text">e.g., Varsity, JV, Freshman</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="fee-amount" class="form-label">Official Fee <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="fee-amount" 
+                                                   step="0.01" min="0.01" max="999999.99" required>
+                                        </div>
+                                        <div class="form-text">Amount officials receive for this level</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fee-notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="fee-notes" rows="3" maxlength="500"></textarea>
+                                <div class="form-text">Optional notes about this fee structure</div>
+                            </div>
+                            
+                            <!-- Fee vs Billing Explanation -->
+                            <div class="alert alert-success">
+                                <h6 class="alert-heading"><i class="fas fa-info-circle"></i> Fee Management</h6>
+                                <p class="mb-2">
+                                    <strong>Official Fees:</strong> The amounts officials get paid for their work
+                                </p>
+                                <p class="mb-0">
+                                    <small class="text-muted">
+                                        This is separate from billing amounts (what organizations get charged).
+                                        Manage billing in the "League Billing Management" section above.
+                                    </small>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success" id="save-fee-btn">
+                                <i class="fas fa-save"></i> Save Fee Structure
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- League Billing Management Section (Admin Only) -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="card mt-4" id="league-billing-section">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-receipt"></i> League Billing Management
+                    <small class="text-muted ms-2">Configure billing structures per league and level</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="billing-league-select" class="form-label">Select League for Billing:</label>
+                        <select class="form-select" id="billing-league-select">
+                            <option value="">Choose a league...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary" id="add-billing-btn" disabled>
+                            <i class="fas fa-plus"></i> Add Billing Structure
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Billing Structures Table -->
+                <div id="billing-structures-container" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Current Billing Structures</h6>
+                        <div class="text-muted small">
+                            <strong>Note:</strong> Billing = what entities pay | Fees = what officials receive
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm" id="billing-structures-table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Level</th>
+                                    <th>Bill Amount</th>
+                                    <th>Bill To Entity</th>
+                                    <th>Created Date</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Billing structures will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- No billing structures message -->
+                    <div id="no-billing-message" class="text-center text-muted py-4" style="display: none;">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <p>No billing structures configured for this league.</p>
+                        <p class="small">Click "Add Billing Structure" to create the first one.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Add/Edit Billing Structure Modal -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="modal fade" id="billingStructureModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="billingStructureModalLabel">Add Billing Structure</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="billingStructureForm">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="billing-level-name" class="form-label">Level Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="billing-level-name" required maxlength="100">
+                                        <div class="form-text">e.g., Varsity, JV, Freshman</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="billing-amount" class="form-label">Bill Amount <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="billing-amount" 
+                                                   step="0.01" min="0.01" max="999999.99" required>
+                                        </div>
+                                        <div class="form-text">Amount to charge the billing entity</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="billing-entity-select" class="form-label">Bill To Entity <span class="text-danger">*</span></label>
+                                <select class="form-select" id="billing-entity-select" required>
+                                    <option value="">Select entity to bill...</option>
+                                </select>
+                                <div class="form-text">Choose which organization receives the bill</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="billing-notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="billing-notes" rows="3" maxlength="500"></textarea>
+                                <div class="form-text">Optional notes about this billing structure</div>
+                            </div>
+                            
+                            <!-- Fee vs Billing Explanation -->
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading"><i class="fas fa-info-circle"></i> Fee vs Billing Explanation</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Official Fees:</strong><br>
+                                        <span class="text-muted">What officials get paid for their work</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Billing Amounts:</strong><br>
+                                        <span class="text-muted">What external entities get charged</span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <small class="text-muted">
+                                    These amounts can be different. For example, you might pay an official $50 
+                                    but bill the school district $75 to cover administrative costs.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="save-billing-btn">
+                                <i class="fas fa-save"></i> Save Billing Structure
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="fas fa-users"></i> Leagues Management</h2>
+            <p class="text-muted">Manage leagues, fees, and billing structures</p>
+        </div>
+    </div>
+    
+    <!-- Basic leagues content will go here -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Leagues</h5>
+        </div>
+        <div class="card-body">
+            <p>League management interface</p>
+        </div>
+    </div>
+    
+</div>
+
+        
+        <!-- Fee Management Section (Admin Only) -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="card mt-4" id="fee-management-section">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-dollar-sign"></i> Fee Management
+                    <small class="text-muted ms-2">Configure official fees per league and level</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="fee-league-select" class="form-label">Select League for Fee Management:</label>
+                        <select class="form-select" id="fee-league-select">
+                            <option value="">Choose a league...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="button" class="btn btn-success" id="add-fee-btn" disabled>
+                            <i class="fas fa-plus"></i> Add Fee Structure
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Fee Structures Table -->
+                <div id="fee-structures-container" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Current Fee Structures</h6>
+                        <div class="text-muted small">
+                            <strong>Note:</strong> Fees = what officials get paid for their work
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm" id="fee-structures-table">
+                            <thead class="table-success">
+                                <tr>
+                                    <th>Level</th>
+                                    <th>Official Fee</th>
+                                    <th>Created Date</th>
+                                    <th>Created By</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Fee structures will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- No fee structures message -->
+                    <div id="no-fees-message" class="text-center text-muted py-4" style="display: none;">
+                        <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                        <p>No fee structures configured for this league.</p>
+                        <p class="small">Click "Add Fee Structure" to create the first one.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Add/Edit Fee Structure Modal -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="modal fade" id="feeStructureModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="feeStructureModalLabel">Add Fee Structure</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="feeStructureForm">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="fee-level-name" class="form-label">Level Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="fee-level-name" required maxlength="100">
+                                        <div class="form-text">e.g., Varsity, JV, Freshman</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="fee-amount" class="form-label">Official Fee <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="fee-amount" 
+                                                   step="0.01" min="0.01" max="999999.99" required>
+                                        </div>
+                                        <div class="form-text">Amount officials receive for this level</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fee-notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="fee-notes" rows="3" maxlength="500"></textarea>
+                                <div class="form-text">Optional notes about this fee structure</div>
+                            </div>
+                            
+                            <!-- Fee vs Billing Explanation -->
+                            <div class="alert alert-success">
+                                <h6 class="alert-heading"><i class="fas fa-info-circle"></i> Fee Management</h6>
+                                <p class="mb-2">
+                                    <strong>Official Fees:</strong> The amounts officials get paid for their work
+                                </p>
+                                <p class="mb-0">
+                                    <small class="text-muted">
+                                        This is separate from billing amounts (what organizations get charged).
+                                        Manage billing in the "League Billing Management" section above.
+                                    </small>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success" id="save-fee-btn">
+                                <i class="fas fa-save"></i> Save Fee Structure
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- League Billing Management Section (Admin Only) -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="card mt-4" id="league-billing-section">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-receipt"></i> League Billing Management
+                    <small class="text-muted ms-2">Configure billing structures per league and level</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="billing-league-select" class="form-label">Select League for Billing:</label>
+                        <select class="form-select" id="billing-league-select">
+                            <option value="">Choose a league...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary" id="add-billing-btn" disabled>
+                            <i class="fas fa-plus"></i> Add Billing Structure
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Billing Structures Table -->
+                <div id="billing-structures-container" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Current Billing Structures</h6>
+                        <div class="text-muted small">
+                            <strong>Note:</strong> Billing = what entities pay | Fees = what officials receive
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm" id="billing-structures-table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Level</th>
+                                    <th>Bill Amount</th>
+                                    <th>Bill To Entity</th>
+                                    <th>Created Date</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Billing structures will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- No billing structures message -->
+                    <div id="no-billing-message" class="text-center text-muted py-4" style="display: none;">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <p>No billing structures configured for this league.</p>
+                        <p class="small">Click "Add Billing Structure" to create the first one.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Add/Edit Billing Structure Modal -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="modal fade" id="billingStructureModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="billingStructureModalLabel">Add Billing Structure</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="billingStructureForm">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="billing-level-name" class="form-label">Level Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="billing-level-name" required maxlength="100">
+                                        <div class="form-text">e.g., Varsity, JV, Freshman</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="billing-amount" class="form-label">Bill Amount <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="billing-amount" 
+                                                   step="0.01" min="0.01" max="999999.99" required>
+                                        </div>
+                                        <div class="form-text">Amount to charge the billing entity</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="billing-entity-select" class="form-label">Bill To Entity <span class="text-danger">*</span></label>
+                                <select class="form-select" id="billing-entity-select" required>
+                                    <option value="">Select entity to bill...</option>
+                                </select>
+                                <div class="form-text">Choose which organization receives the bill</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="billing-notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="billing-notes" rows="3" maxlength="500"></textarea>
+                                <div class="form-text">Optional notes about this billing structure</div>
+                            </div>
+                            
+                            <!-- Fee vs Billing Explanation -->
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading"><i class="fas fa-info-circle"></i> Fee vs Billing Explanation</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Official Fees:</strong><br>
+                                        <span class="text-muted">What officials get paid for their work</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Billing Amounts:</strong><br>
+                                        <span class="text-muted">What external entities get charged</span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <small class="text-muted">
+                                    These amounts can be different. For example, you might pay an official $50 
+                                    but bill the school district $75 to cover administrative costs.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="save-billing-btn">
+                                <i class="fas fa-save"></i> Save Billing Structure
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/leagues.js') }}"></script>
+
+        
+        <!-- Fee Management Section (Admin Only) -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="card mt-4" id="fee-management-section">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-dollar-sign"></i> Fee Management
+                    <small class="text-muted ms-2">Configure official fees per league and level</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="fee-league-select" class="form-label">Select League for Fee Management:</label>
+                        <select class="form-select" id="fee-league-select">
+                            <option value="">Choose a league...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="button" class="btn btn-success" id="add-fee-btn" disabled>
+                            <i class="fas fa-plus"></i> Add Fee Structure
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Fee Structures Table -->
+                <div id="fee-structures-container" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Current Fee Structures</h6>
+                        <div class="text-muted small">
+                            <strong>Note:</strong> Fees = what officials get paid for their work
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm" id="fee-structures-table">
+                            <thead class="table-success">
+                                <tr>
+                                    <th>Level</th>
+                                    <th>Official Fee</th>
+                                    <th>Created Date</th>
+                                    <th>Created By</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Fee structures will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- No fee structures message -->
+                    <div id="no-fees-message" class="text-center text-muted py-4" style="display: none;">
+                        <i class="fas fa-money-bill-wave fa-2x mb-2"></i>
+                        <p>No fee structures configured for this league.</p>
+                        <p class="small">Click "Add Fee Structure" to create the first one.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Add/Edit Fee Structure Modal -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="modal fade" id="feeStructureModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="feeStructureModalLabel">Add Fee Structure</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="feeStructureForm">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="fee-level-name" class="form-label">Level Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="fee-level-name" required maxlength="100">
+                                        <div class="form-text">e.g., Varsity, JV, Freshman</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="fee-amount" class="form-label">Official Fee <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="fee-amount" 
+                                                   step="0.01" min="0.01" max="999999.99" required>
+                                        </div>
+                                        <div class="form-text">Amount officials receive for this level</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fee-notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="fee-notes" rows="3" maxlength="500"></textarea>
+                                <div class="form-text">Optional notes about this fee structure</div>
+                            </div>
+                            
+                            <!-- Fee vs Billing Explanation -->
+                            <div class="alert alert-success">
+                                <h6 class="alert-heading"><i class="fas fa-info-circle"></i> Fee Management</h6>
+                                <p class="mb-2">
+                                    <strong>Official Fees:</strong> The amounts officials get paid for their work
+                                </p>
+                                <p class="mb-0">
+                                    <small class="text-muted">
+                                        This is separate from billing amounts (what organizations get charged).
+                                        Manage billing in the "League Billing Management" section above.
+                                    </small>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success" id="save-fee-btn">
+                                <i class="fas fa-save"></i> Save Fee Structure
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- League Billing Management Section (Admin Only) -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="card mt-4" id="league-billing-section">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-receipt"></i> League Billing Management
+                    <small class="text-muted ms-2">Configure billing structures per league and level</small>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="billing-league-select" class="form-label">Select League for Billing:</label>
+                        <select class="form-select" id="billing-league-select">
+                            <option value="">Choose a league...</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary" id="add-billing-btn" disabled>
+                            <i class="fas fa-plus"></i> Add Billing Structure
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Billing Structures Table -->
+                <div id="billing-structures-container" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="mb-0">Current Billing Structures</h6>
+                        <div class="text-muted small">
+                            <strong>Note:</strong> Billing = what entities pay | Fees = what officials receive
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm" id="billing-structures-table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Level</th>
+                                    <th>Bill Amount</th>
+                                    <th>Bill To Entity</th>
+                                    <th>Created Date</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Billing structures will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- No billing structures message -->
+                    <div id="no-billing-message" class="text-center text-muted py-4" style="display: none;">
+                        <i class="fas fa-inbox fa-2x mb-2"></i>
+                        <p>No billing structures configured for this league.</p>
+                        <p class="small">Click "Add Billing Structure" to create the first one.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Add/Edit Billing Structure Modal -->
+        {% if current_user.role in ['admin', 'superadmin'] %}
+        <div class="modal fade" id="billingStructureModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="billingStructureModalLabel">Add Billing Structure</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form id="billingStructureForm">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="billing-level-name" class="form-label">Level Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="billing-level-name" required maxlength="100">
+                                        <div class="form-text">e.g., Varsity, JV, Freshman</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="billing-amount" class="form-label">Bill Amount <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number" class="form-control" id="billing-amount" 
+                                                   step="0.01" min="0.01" max="999999.99" required>
+                                        </div>
+                                        <div class="form-text">Amount to charge the billing entity</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="billing-entity-select" class="form-label">Bill To Entity <span class="text-danger">*</span></label>
+                                <select class="form-select" id="billing-entity-select" required>
+                                    <option value="">Select entity to bill...</option>
+                                </select>
+                                <div class="form-text">Choose which organization receives the bill</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="billing-notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="billing-notes" rows="3" maxlength="500"></textarea>
+                                <div class="form-text">Optional notes about this billing structure</div>
+                            </div>
+                            
+                            <!-- Fee vs Billing Explanation -->
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading"><i class="fas fa-info-circle"></i> Fee vs Billing Explanation</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Official Fees:</strong><br>
+                                        <span class="text-muted">What officials get paid for their work</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Billing Amounts:</strong><br>
+                                        <span class="text-muted">What external entities get charged</span>
+                                    </div>
+                                </div>
+                                <hr>
+                                <small class="text-muted">
+                                    These amounts can be different. For example, you might pay an official $50 
+                                    but bill the school district $75 to cover administrative costs.
+                                </small>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="save-billing-btn">
+                                <i class="fas fa-save"></i> Save Billing Structure
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+{% endblock %}

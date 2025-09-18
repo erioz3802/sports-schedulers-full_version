@@ -1,0 +1,41 @@
+{
+  "frequently_asked_questions": [
+    {
+      "id": 1,
+      "question": "How do I add a new user?",
+      "answer": "Navigate to the Users tab, click 'Add User', fill in the required fields (username, email, name), select a role, and click Save.",
+      "category": "users",
+      "keywords": [
+        "add",
+        "user",
+        "create",
+        "new"
+      ]
+    },
+    {
+      "id": 2,
+      "question": "How do I assign an official to a game?",
+      "answer": "Go to the Assignments tab, select the game, choose available officials, check for conflicts, and confirm the assignment.",
+      "category": "assignments",
+      "keywords": [
+        "assign",
+        "official",
+        "game",
+        "schedule"
+      ]
+    },
+    {
+      "id": 3,
+      "question": "What should I do if I can't log in?",
+      "answer": "Check your username and password, ensure Caps Lock is off, and contact your administrator if the problem persists.",
+      "category": "authentication",
+      "keywords": [
+        "login",
+        "password",
+        "access",
+        "authentication"
+      ]
+    }
+  ],
+  "last_updated": "2025-09-09T18:46:21.413806"
+}

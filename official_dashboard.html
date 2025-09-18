@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Schedulers - Official Dashboard</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+        }
+        
+        body {
+            background-color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #1e40af 100%);
+            min-height: 100vh;
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0.25rem 0;
+            border-radius: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .content-area {
+            padding: 2rem;
+        }
+        
+        .stats-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stats-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .games-card {
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .game-item {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .game-item:hover {
+            background-color: #f8fafc;
+        }
+        
+        .game-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+        }
+        
+        .profile-section {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar p-0">
+                <div class="p-4">
+                    <h4 class="mb-4">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        Sports Schedulers
+                    </h4>
+                    <small class="text-light opacity-75">Official Portal</small>
+                </div>
+                
+                <nav class="nav flex-column px-4">
+                    <a class="nav-link active" href="#" onclick="showTab('dashboard')">
+                        <i class="bi bi-house-door me-2"></i>
+                        Dashboard
+                    </a>
+                    <a class="nav-link" href="#" onclick="showTab('my-games')">
+                        <i class="bi bi-calendar-event me-2"></i>
+                        My Games
+                    </a>
+                    <a class="nav-link" href="#" onclick="showTab('my-profile')">
+                        <i class="bi bi-person-circle me-2"></i>
+                        My Profile
+                    </a>
+                    <a class="nav-link" href="#" onclick="showTab('availability')">
+                        <i class="bi bi-calendar3 me-2"></i>
+                        My Availability
+                    </a>
+                </nav>
+                
+                <div class="mt-auto p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-person-circle fs-2"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold" id="user-name">Loading...</div>
+                            <small class="text-light opacity-75">Official</small>
+                        </div>
+                    </div>
+                    <button class="btn btn-outline-light btn-sm mt-3 w-100" onclick="logout()">
+                        <i class="bi bi-box-arrow-right me-2"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 content-area">
+                <!-- Dashboard Tab -->
+                <div id="dashboard-tab" class="tab-content">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 class="mb-1">Welcome back!</h2>
+                            <p class="text-muted">Here's your officiating summary</p>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-muted small">Today's Date</div>
+                            <div class="fw-bold" id="current-date"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="stats-card">
+                                <div class="d-flex align-items-center">
+                                    <div class="stats-icon bg-primary text-white me-3">
+                                        <i class="bi bi-calendar-check"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fs-3 fw-bold text-primary" id="upcoming-games-count">0</div>
+                                        <div class="text-muted small">Upcoming Games</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="stats-card">
+                                <div class="d-flex align-items-center">
+                                    <div class="stats-icon bg-success text-white me-3">
+                                        <i class="bi bi-check-circle"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fs-3 fw-bold text-success" id="completed-games-count">0</div>
+                                        <div class="text-muted small">Completed Games</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="stats-card">
+                                <div class="d-flex align-items-center">
+                                    <div class="stats-icon bg-warning text-white me-3">
+                                        <i class="bi bi-clock"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fs-3 fw-bold text-warning" id="this-month-count">0</div>
+                                        <div class="text-muted small">This Month</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 col-lg-3 mb-3">
+                            <div class="stats-card">
+                                <div class="d-flex align-items-center">
+                                    <div class="stats-icon bg-info text-white me-3">
+                                        <i class="bi bi-trophy"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fs-3 fw-bold text-info" id="total-games-count">0</div>
+                                        <div class="text-muted small">Total Games</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Upcoming Games -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="games-card">
+                                <div class="card-header bg-white border-0 p-4">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-calendar-event me-2"></i>
+                                        Your Upcoming Games
+                                    </h5>
+                                </div>
+                                <div id="upcoming-games-list">
+                                    <div class="text-center p-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My Games Tab -->
+                <div id="my-games-tab" class="tab-content" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>My Games</h2>
+                        <div class="d-flex gap-2">
+                            <select class="form-select" id="games-filter" onchange="filterMyGames()">
+                                <option value="all">All Games</option>
+                                <option value="upcoming">Upcoming</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="games-card">
+                        <div id="my-games-list">
+                            <div class="text-center p-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My Profile Tab -->
+                <div id="my-profile-tab" class="tab-content" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>My Profile</h2>
+                        <button class="btn btn-primary" onclick="editProfile()">
+                            <i class="bi bi-pencil me-2"></i>
+                            Edit Profile
+                        </button>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="profile-section">
+                                <form id="profile-form">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="full-name" class="form-label">Full Name</label>
+                                            <input type="text" class="form-control" id="full-name" readonly>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="email" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="phone" class="form-label">Phone</label>
+                                            <input type="tel" class="form-control" id="phone" readonly>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="username" class="form-label">Username</label>
+                                            <input type="text" class="form-control" id="username" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="address" class="form-label">Address</label>
+                                        <textarea class="form-control" id="address" rows="3" readonly></textarea>
+                                    </div>
+                                    <div class="d-none" id="edit-buttons">
+                                        <button type="button" class="btn btn-success me-2" onclick="saveProfile()">
+                                            <i class="bi bi-check-lg me-2"></i>
+                                            Save Changes
+                                        </button>
+                                        <button type="button" class="btn btn-secondary" onclick="cancelEdit()">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="profile-section">
+                                <h5 class="mb-3">Account Information</h5>
+                                <div class="mb-2">
+                                    <strong>Role:</strong>
+                                    <span class="badge bg-success ms-2">Official</span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Member Since:</strong>
+                                    <div id="member-since" class="text-muted"></div>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Last Login:</strong>
+                                    <div id="last-login" class="text-muted"></div>
+                                </div>
+                                
+                                <hr class="my-3">
+                                
+                                <h6 class="mb-3">Change Password</h6>
+                                <button class="btn btn-outline-primary btn-sm w-100" onclick="changePassword()">
+                                    <i class="bi bi-key me-2"></i>
+                                    Change Password
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My Availability Tab -->
+                <div id="availability-tab" class="tab-content" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>My Availability</h2>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success" onclick="showAvailabilityModal('available')">
+                                <i class="bi bi-plus-circle me-2"></i>
+                                Mark Available
+                            </button>
+                            <button class="btn btn-warning" onclick="showAvailabilityModal('unavailable')">
+                                <i class="bi bi-x-circle me-2"></i>
+                                Mark Unavailable
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Calendar View -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="profile-section">
+                                <div id="availability-calendar">
+                                    <div class="text-center p-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading calendar...</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Axios for HTTP requests -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.0/axios.min.js"></script>
+    
+    <!-- Official Dashboard JavaScript -->
+    <script src="/static/js/official.js"></script>
+    
+    <!-- Game Details Modal -->
+    <div class="modal fade" id="gameDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Game Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="gameDetailsContent">
+                    <!-- Game details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <div id="gameResponseButtons" style="display: none;">
+                        <button type="button" class="btn btn-success me-2" onclick="respondToGame('accepted')">
+                            <i class="bi bi-check-lg me-2"></i>Accept Game
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="respondToGame('declined')">
+                            <i class="bi bi-x-lg me-2"></i>Decline Game
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Availability Modal -->
+    <div class="modal fade" id="availabilityModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Set Availability</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="availabilityForm">
+                        <div class="mb-3">
+                            <label for="availability-date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="availability-date" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="availability-type" class="form-label">Availability Type</label>
+                            <select class="form-select" id="availability-type" onchange="toggleTimeFields()" required>
+                                <option value="">Select Type</option>
+                                <option value="available">Available All Day</option>
+                                <option value="unavailable">Unavailable All Day</option>
+                                <option value="partial">Partial Availability</option>
+                            </select>
+                        </div>
+                        <div id="time-fields" style="display: none;">
+                            <div class="row">
+                                <div class="col-6">
+                                    <label for="start-time" class="form-label">Start Time</label>
+                                    <input type="time" class="form-control" id="start-time">
+                                </div>
+                                <div class="col-6">
+                                    <label for="end-time" class="form-label">End Time</label>
+                                    <input type="time" class="form-control" id="end-time">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="availability-reason" class="form-label">Reason (Optional)</label>
+                            <textarea class="form-control" id="availability-reason" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAvailability()">Save Availability</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Susan Virtual Assistant -->
+    <script src="/static/js/susan-assistant.js"></script>
+</body>
+</html>

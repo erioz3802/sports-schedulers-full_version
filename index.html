@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sports Schedulers</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .welcome {
+            color: #333;
+        }
+        .logout-btn {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .dashboard-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+        .user-info {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .copyright {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="welcome">
+            <h1>Sports Schedulers Dashboard</h1>
+            {% if user %}
+            <p>Welcome, {{ user.first_name }} {{ user.last_name }}</p>
+            {% endif %}
+        </div>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+    
+    <div class="dashboard-content">
+        <div class="success-message">
+            <h2>🎉 Login Successful!</h2>
+            <p>Your Sports Schedulers web application is now working correctly.</p>
+        </div>
+        
+        <h3>Application Status</h3>
+        <p><strong>✅ Authentication:</strong> Working</p>
+        <p><strong>✅ Database:</strong> Connected</p>
+        <p><strong>✅ Session Management:</strong> Active</p>
+        
+        {% if user %}
+        <div class="user-info">
+            <h3>Current User Information</h3>
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+            <p><strong>Role:</strong> {{ user.role }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="copyright">
+            <p><strong>Sports Schedulers</strong> - Web Application</p>
+            <p><strong>Author: Jose Ortiz
+            <p><strong>Copyright: Jose Ortiz 2025
+        </div>
+    </div>
+</body>
+</html>

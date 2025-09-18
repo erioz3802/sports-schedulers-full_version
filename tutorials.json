@@ -1,0 +1,34 @@
+{
+  "tutorials": [
+    {
+      "id": 1,
+      "title": "Getting Started with Sports Schedulers",
+      "description": "A comprehensive introduction to the Sports Schedulers application",
+      "steps": [
+        "Log in with your credentials",
+        "Familiarize yourself with the dashboard",
+        "Explore the navigation tabs",
+        "Review your role permissions",
+        "Start with basic tasks"
+      ],
+      "estimated_time": "10 minutes",
+      "difficulty": "Beginner"
+    },
+    {
+      "id": 2,
+      "title": "Managing Users Effectively",
+      "description": "Learn how to create, edit, and manage user accounts",
+      "steps": [
+        "Access the Users tab",
+        "Understand role differences",
+        "Create new user accounts",
+        "Edit existing users",
+        "Manage permissions",
+        "Use bulk operations"
+      ],
+      "estimated_time": "15 minutes",
+      "difficulty": "Intermediate"
+    }
+  ],
+  "last_updated": "2025-09-09T18:46:21.415801"
+}
